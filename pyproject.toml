@@ -1,0 +1,19 @@
+[project]
+name = "locus"
+version = "0.1.0"
+description = "把坐标写到已连接的 iOS 或 Android 设备"
+readme = "README.md"
+authors = [
+    { name = "BeiZi6", email = "hitxyshan@163.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pymobiledevice3>=11.18.0",
+]
+
+[project.scripts]
+locus = "locus:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
