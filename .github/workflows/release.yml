@@ -49,7 +49,8 @@ jobs:
           rm -rf "$VENV"/lib/python3.12/test "$VENV"/lib/python3.12/idlelib \
             "$VENV"/lib/python3.12/turtledemo "$VENV"/lib/python3.12/tkinter \
             "$VENV"/include "$VENV"/share
-          find "$APP/Contents" -name __pycache__ -type d -prune -exec rm -rf {} +
+          # 预编译 pyc 且不校验源文件时间戳：运行时不会往已签名的 bundle 里写文件
+          "$VENV/bin/python" -m compileall -q -j 0 --invalidation-mode unchecked-hash             "$VENV/lib/python3.12" "$APP/Contents/Resources/src"
 
           # arm64 的 Mach-O 必须带签名才能加载，先签内层再签 app
           find "$VENV" -type f | while read -r f; do
@@ -65,10 +66,9 @@ jobs:
           mkdir "$RUNNER_TEMP/relocated"
           ditto dist/Locus.app "$RUNNER_TEMP/relocated/Locus.app"
           APP="$RUNNER_TEMP/relocated/Locus.app"
-          PYTHONPATH="$APP/Contents/Resources/src" "$APP/Contents/Resources/.venv/bin/python" -I -c \
-            'import sys; sys.path.insert(0, sys.argv[1]); import locus.worker, pymobiledevice3.lockdown, pymobiledevice3.services.dvt.instruments.dvt_provider; print(sys.version)' \
-            "$APP/Contents/Resources/src"
-          codesign --verify --deep --strict "$APP"
+          codesign --verify --deep --strict -vv "$APP"
+          PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$APP/Contents/Resources/src" "$APP/Contents/Resources/.venv/bin/python" -I -c             'import sys; sys.path.insert(0, sys.argv[1]); import locus.worker, pymobiledevice3.lockdown, pymobiledevice3.services.dvt.instruments.dvt_provider; print(sys.version)'             "$APP/Contents/Resources/src"
+          codesign --verify --deep --strict -vv "$APP"
 
       - name: Publish
         env:
