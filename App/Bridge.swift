@@ -198,6 +198,10 @@ final class DeviceBridge: ObservableObject {
         if let override = ProcessInfo.processInfo.environment["LOCUS_ROOT"] {
             return URL(fileURLWithPath: override)
         }
+        if let resources = Bundle.main.resourceURL,
+           FileManager.default.isExecutableFile(atPath: resources.appendingPathComponent(".venv/bin/python").path) {
+            return resources
+        }
         var url = Bundle.main.executableURL ?? URL(fileURLWithPath: CommandLine.arguments[0])
         for _ in 0..<8 {
             url.deleteLastPathComponent()
